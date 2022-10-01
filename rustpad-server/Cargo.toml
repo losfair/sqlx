@@ -20,6 +20,7 @@ sqlx = { git = "https://github.com/losfair/sqlx", rev = "5a54d551c069cef4daf18af
 tokio = { version = "1.6.1", features = ["full", "test-util"] }
 tokio-stream = "0.1.6"
 warp = "0.3.1"
+rand = "0.8"
 
 [dev-dependencies]
 tempfile = "3.2.0"
