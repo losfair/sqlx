@@ -8,7 +8,7 @@ use crate::sqlite::{SqliteColumn, SqliteError, SqliteRow, SqliteValue};
 use crate::HashMap;
 use bytes::{Buf, Bytes};
 use libsqlite3_sys::{
-    sqlite3, sqlite3_prepare_v3, sqlite3_stmt, SQLITE_OK, SQLITE_PREPARE_PERSISTENT,
+    sqlite3, sqlite3_prepare_v2, sqlite3_stmt, SQLITE_OK, 
 };
 use smallvec::SmallVec;
 use std::i32;
@@ -48,18 +48,8 @@ pub(crate) struct VirtualStatement {
 fn prepare(
     conn: *mut sqlite3,
     query: &mut Bytes,
-    persistent: bool,
+    _persistent: bool,
 ) -> Result<Option<StatementHandle>, Error> {
-    let mut flags = 0;
-
-    if persistent {
-        // SQLITE_PREPARE_PERSISTENT
-        //  The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
-        //  planner that the prepared statement will be retained for a long time
-        //  and probably reused many times.
-        flags |= SQLITE_PREPARE_PERSISTENT;
-    }
-
     while !query.is_empty() {
         let mut statement_handle: *mut sqlite3_stmt = null_mut();
         let mut tail: *const c_char = null();
@@ -69,11 +59,10 @@ fn prepare(
 
         // <https://www.sqlite.org/c3ref/prepare.html>
         let status = unsafe {
-            sqlite3_prepare_v3(
+            sqlite3_prepare_v2(
                 conn,
                 query_ptr,
                 query_len,
-                flags as u32,
                 &mut statement_handle,
                 &mut tail,
             )
